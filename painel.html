@@ -37,7 +37,7 @@ button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--pena); outline-offset: 2px; border-radius: 4px; }
 .lado :focus-visible, .nav :focus-visible { outline-color: var(--papel); }
-.so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.so-leitor { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .mono { font-family: var(--mono); }
 .serif { font-family: var(--serif); }
 [hidden] { display: none !important; }
@@ -246,6 +246,9 @@ dialog.folha .f-pe { padding: 14px 22px 18px; display: flex; justify-content: fl
 .nota span { display: block; font-size: 11.5px; color: var(--grafite); margin-top: 5px; }
 .h-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--grafite); }
 .h-tit { font-family: var(--serif); font-weight: 600; font-size: 18px; line-height: 1.28; margin: 6px 0 8px; text-wrap: pretty; }
+.h-orig { font-size: 12.5px; line-height: 1.4; color: var(--grafite); margin: -4px 0 8px; overflow-wrap: anywhere; }
+.h-orig span { font-family: var(--serif); font-style: normal; }
+.nao-trad { font-size: 11.5px; border: 1px dashed #A9B6B0; border-radius: 10px; padding: 0 7px; color: var(--grafite); }
 .h-tit a { color: var(--tinta); text-decoration: none; background-image: linear-gradient(var(--grade), var(--grade)); background-size: 100% 1px; background-position: 0 100%; background-repeat: no-repeat; }
 .h-tit a:hover { background-image: linear-gradient(var(--pena), var(--pena)); color: var(--pena); }
 .sinais { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
@@ -397,6 +400,14 @@ const T = (() => {
   const num = (n) => new Intl.NumberFormat("pt-BR").format(n);
   const dec = (n, c) => new Intl.NumberFormat("pt-BR", { minimumFractionDigits: c, maximumFractionDigits: c }).format(n);
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  // titulo em pt-BR (API v1.9): "titulo" ja traduzido + "titulo_original". Sem original = a IA nao classificou/traduziu.
+  // Devolve { traduzido, original }: original so quando difere do traduzido (ignora caixa e espacos).
+  function traducao(h) {
+    const orig = h.titulo_original;
+    if (orig == null || String(orig).trim() === "") return { traduzido: false, original: "" };
+    const igual = String(orig).trim().toLowerCase().replace(/\s+/g, " ") === String(h.titulo || "").trim().toLowerCase().replace(/\s+/g, " ");
+    return { traduzido: true, original: igual ? "" : String(orig).trim() };
+  }
   function urlSegura(u) { try { const x = new URL(u); return (x.protocol === "https:" || x.protocol === "http:") ? x.href : ""; } catch (e) { return ""; } }
 
   // ---------- o traco do sismografo, com dado de verdade ----------
@@ -516,7 +527,7 @@ const T = (() => {
   // "Irlanda (PT-BR, herda UE e Europa)" -> "Irlanda": o resto ja aparece nas pilulas
   function nomeCurto(n) { return String(n).replace(/\s*\(.*\)\s*$/, "") || n; }
 
-  return { ler, agir, iniciar, aviso, esc, urlSegura, hora, dia, diaLongo, diaISO, haQuanto, minutosDesde, duracao, num, dec, traco, sementeDe,
+  return { ler, agir, iniciar, aviso, esc, urlSegura, traducao, hora, dia, diaLongo, diaISO, haQuanto, minutosDesde, duracao, num, dec, traco, sementeDe,
     perfilLembrado, lembrarPerfil, abasPerfis, nomeCurto, get resumo() { return resumo; }, get fuso() { return fuso; } };
 })();
 
@@ -667,6 +678,7 @@ if (typeof T === "undefined") {
     const a = h.alerta, treme = a && a.destino === "alerta";
     const link = h.link && T.urlSegura(h.link.url);
     const nota = notaDe(h);
+    const tr2 = T.traducao(h);
     const rotNota = a ? `nota ${E(T.nomeCurto(perfil.nome || ""))}` : "nota global";
     // traco da historia: artigos novos por foto de 30 min; treme onde dobra sobre a media anterior
     const s = (h.serie || []).map(x => x.n_artigos || 0);
@@ -692,8 +704,9 @@ if (typeof T === "undefined") {
     return `<article class="hist${treme ? " treme" : ""}" id="h-${h.id}" data-id="${h.id}">
       <div class="nota"><b>${Math.round(nota)}</b><span>${rotNota}</span></div>
       <div>
-        <div class="h-meta"><span class="cod">${E(h.codigo || "H-" + h.id)}</span><span>detectada ${T.hora(h.primeira_vez)}</span>${h.tema_nome ? `<span>${E(h.tema_nome)}</span>` : ""}${h.status !== "ativa" ? `<span>esfriou</span>` : ""}</div>
-        <h3 class="h-tit">${link ? `<a href="${E(link)}" target="_blank" rel="noopener noreferrer">${E(h.titulo)}</a>` : E(h.titulo)}</h3>
+        <div class="h-meta"><span class="cod">${E(h.codigo || "H-" + h.id)}</span><span>detectada ${T.hora(h.primeira_vez)}</span>${h.tema_nome ? `<span>${E(h.tema_nome)}</span>` : ""}${h.status !== "ativa" ? `<span>esfriou</span>` : ""}${tr2.traduzido ? "" : `<span class="nao-trad" title="A IA ainda não classificou esta história: o título está como veio da fonte.">não traduzido</span>`}</div>
+        <h3 class="h-tit"${tr2.traduzido ? ' lang="pt-BR"' : ""}>${link ? `<a href="${E(link)}" target="_blank" rel="noopener noreferrer">${E(h.titulo)}</a>` : E(h.titulo)}</h3>
+        ${tr2.original ? `<p class="h-orig">Original: <span>${E(tr2.original)}</span></p>` : ""}
         <div class="sinais">${sinais}<button type="button" class="porque" data-porque aria-expanded="${abertos.has(h.id)}" aria-controls="d-${h.id}">Por que esta nota<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
       </div>
       <div class="lado-h">${tr}<div class="estado">${estado}</div>

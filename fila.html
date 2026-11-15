@@ -37,7 +37,7 @@ button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--pena); outline-offset: 2px; border-radius: 4px; }
 .lado :focus-visible, .nav :focus-visible { outline-color: var(--papel); }
-.so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.so-leitor { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .mono { font-family: var(--mono); }
 .serif { font-family: var(--serif); }
 [hidden] { display: none !important; }
@@ -204,16 +204,32 @@ dialog.folha .f-pe { padding: 14px 22px 18px; display: flex; justify-content: fl
 /* Fila de producao (tela 5 da proposta) */
 .prazos { font-size: 13px; color: var(--grafite); max-width: 520px; text-align: right; line-height: 1.45; }
 .prazos b { color: var(--tinta); font-weight: 600; }
-.quadro { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; align-items: start; }
-.quadro.com-previa { grid-template-columns: 1fr 1fr 1fr 1.75fr 1fr; }
-.coluna { background: rgba(195,206,201,.32); border-radius: var(--raio); padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 220px; }
-.coluna h2 { font-size: 13.5px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-.coluna h2 span { font: 500 11.5px var(--mono); color: var(--grafite); }
+/* Kanban: 6 etapas fixas, sempre visiveis. Nao cabe? rola para o lado com encaixe (como app). */
+.quadro {
+  position: relative;   /* texto so-leitor (absolute) dentro do quadro nao pode escapar e alargar a pagina */
+  display: grid; grid-auto-flow: column; grid-template-columns: repeat(6, minmax(160px, 1fr)); gap: 12px; align-items: stretch;
+  overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding-bottom: 8px; scrollbar-width: thin;
+}
+.quadro.com-previa { grid-template-columns: repeat(4, minmax(160px, 1fr)) minmax(280px, 1.7fr) minmax(160px, 1fr); }
+.quadro:focus-visible { outline: 2px solid var(--pena); outline-offset: 4px; }
+.coluna { background: rgba(195,206,201,.32); border-radius: var(--raio); padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 340px; scroll-snap-align: start; }
+.col-cab { padding: 0 2px 6px; border-bottom: 1px solid rgba(91,102,112,.18); }
+.coluna h2 { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+.coluna h2 .passo { font: 600 10.5px/18px var(--mono); width: 18px; height: 18px; text-align: center; border-radius: 50%; border: 1px solid #8C9792; color: var(--grafite); flex: none; }
+.coluna h2 .n { margin-left: auto; font: 600 12px var(--mono); color: var(--grafite); }
+.coluna:not(.vazia) h2 .n { color: var(--tinta); }
+.col-meta { font-size: 12px; color: var(--grafite); margin-top: 3px; line-height: 1.35; }
+.col-meta b { color: var(--tinta); font-weight: 600; }
+.col-vazia { font-size: 12.5px; color: var(--grafite); padding: 12px 6px; border-top: 1.5px dashed #A9B6B0; text-align: center; margin-top: 4px; }
+.faixa-fila { margin-bottom: 14px; align-items: center; }
+.faixa-fila a { font-weight: 600; white-space: nowrap; }
+.dica-arrastar { display: none; }
 .card { background: var(--branco); border: 1px solid var(--grade); border-radius: 9px; padding: 12px; scroll-margin-top: 80px; }
 .card:target { box-shadow: 0 0 0 2px var(--pena); }
 .card .c-tit { font-family: var(--serif); font-weight: 600; font-size: 15.5px; line-height: 1.28; margin: 8px 0 6px; overflow-wrap: anywhere; }
 .card .meta { font-size: 12.5px; color: var(--grafite); line-height: 1.45; }
-.relogio { display: inline-flex; align-items: center; gap: 5px; font: 500 12.5px var(--sans); flex-wrap: wrap; color: var(--tinta); background: var(--pena-fundo); border-radius: 4px; padding: 3px 7px; margin-top: 8px; }
+.relogio { display: inline-block; line-height: 1.5; font: 500 12.5px/1.5 var(--sans); color: var(--tinta); background: var(--pena-fundo); border-radius: 4px; padding: 3px 7px; margin-top: 8px; }
+.relogio svg { vertical-align: -1px; margin-right: 4px; }
 .relogio b { font: 600 11.5px var(--mono); white-space: nowrap; }
 .relogio.estourou { background: var(--abalo-fundo); color: var(--abalo-texto); }
 .selo { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: #E3E9E6; color: var(--tinta); margin-top: 8px; }
@@ -245,16 +261,13 @@ dialog.folha .f-pe { padding: 14px 22px 18px; display: flex; justify-content: fl
 .fora li .t { font-family: var(--serif); font-weight: 600; }
 .fora li .q { color: var(--grafite); font-size: 12.5px; white-space: nowrap; }
 
-@media (max-width: 1180px) {
-  .quadro, .quadro.com-previa { grid-template-columns: 1fr 1fr; }
-}
 @media (max-width: 860px) {
   .prazos { text-align: left; }
-  .quadro, .quadro.com-previa { grid-template-columns: 1fr; gap: 10px; }
-  .coluna { min-height: 0; }
-  .coluna.vazia { flex-direction: row; justify-content: space-between; align-items: center; padding: 12px 14px; }
-  .coluna.vazia .vazio { border: 0; padding: 0; text-align: right; }
-  .coluna.vazia h2 span { display: none; }
+  /* celular: uma coluna por tela, a seguinte aparecendo na beirada (convida a arrastar) */
+  .quadro, .quadro.com-previa { grid-template-columns: none; grid-auto-columns: 84%; gap: 10px; margin: 0 -16px; padding: 0 16px 10px; scroll-padding: 0 16px; }
+  .quadro, .quadro.com-previa { align-items: start; }
+  .coluna { min-height: 300px; }
+  .dica-arrastar { display: block; font-size: 12.5px; color: var(--grafite); margin: 0 0 8px; }
   .fora li { grid-template-columns: auto 1fr; }
   .fora li .q { grid-column: 2; }
 }
@@ -363,6 +376,14 @@ const T = (() => {
   const num = (n) => new Intl.NumberFormat("pt-BR").format(n);
   const dec = (n, c) => new Intl.NumberFormat("pt-BR", { minimumFractionDigits: c, maximumFractionDigits: c }).format(n);
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  // titulo em pt-BR (API v1.9): "titulo" ja traduzido + "titulo_original". Sem original = a IA nao classificou/traduziu.
+  // Devolve { traduzido, original }: original so quando difere do traduzido (ignora caixa e espacos).
+  function traducao(h) {
+    const orig = h.titulo_original;
+    if (orig == null || String(orig).trim() === "") return { traduzido: false, original: "" };
+    const igual = String(orig).trim().toLowerCase().replace(/\s+/g, " ") === String(h.titulo || "").trim().toLowerCase().replace(/\s+/g, " ");
+    return { traduzido: true, original: igual ? "" : String(orig).trim() };
+  }
   function urlSegura(u) { try { const x = new URL(u); return (x.protocol === "https:" || x.protocol === "http:") ? x.href : ""; } catch (e) { return ""; } }
 
   // ---------- o traco do sismografo, com dado de verdade ----------
@@ -482,7 +503,7 @@ const T = (() => {
   // "Irlanda (PT-BR, herda UE e Europa)" -> "Irlanda": o resto ja aparece nas pilulas
   function nomeCurto(n) { return String(n).replace(/\s*\(.*\)\s*$/, "") || n; }
 
-  return { ler, agir, iniciar, aviso, esc, urlSegura, hora, dia, diaLongo, diaISO, haQuanto, minutosDesde, duracao, num, dec, traco, sementeDe,
+  return { ler, agir, iniciar, aviso, esc, urlSegura, traducao, hora, dia, diaLongo, diaISO, haQuanto, minutosDesde, duracao, num, dec, traco, sementeDe,
     perfilLembrado, lembrarPerfil, abasPerfis, nomeCurto, get resumo() { return resumo; }, get fuso() { return fuso; } };
 })();
 
@@ -495,12 +516,15 @@ if (typeof T === "undefined") {
 "use strict";
 (() => {
   const E = T.esc;
+  // As 6 etapas do contrato (tela 5 da proposta), SEMPRE visiveis: o quadro e o mapa do caminho, mesmo vazio.
+  // prazo: chave em d.prazos (minutos) ou texto fixo. Revisao e do Sir: sem prazo.
   const COLUNAS = [
-    { k: "checagem", t: "Checagem", st: ["aprovada", "aprovada_checagem", "checagem"], vazio: "Nada aqui agora." },
-    { k: "roteiro", t: "Roteiro e legenda", st: ["roteiro", "devolvida"], vazio: "Nada aqui agora." },
-    { k: "edicao", t: "Edição", st: ["edicao"], vazio: "Nada aqui agora." },
-    { k: "revisao", t: "Prévia para você", st: ["revisao"], vazio: "Nenhuma prévia esperando você." },
-    { k: "pronto", t: "Publicado ou checado", st: ["publicada", "checada"], vazio: "Nada publicado ainda." }
+    { k: "aprovada", t: "Aprovada", dono: "Tremor", prazo: "segue sozinha", st: ["aprovada", "aprovada_checagem"] },
+    { k: "checagem", t: "Checagem", dono: "Lívia", prazo: "checagem_min", st: ["checagem"] },
+    { k: "roteiro", t: "Roteiro e legenda", dono: "Renata", prazo: "roteiro_min", st: ["roteiro", "devolvida"] },
+    { k: "edicao", t: "Edição", dono: "Nanda", prazo: "edicao_min", st: ["edicao"] },
+    { k: "revisao", t: "Revisão", dono: "Você", prazo: "sem prazo", st: ["revisao"] },
+    { k: "publicada", t: "Publicada", dono: "Você posta", prazo: "inclui as checadas", st: ["publicada", "checada"] }
   ];
   const FORA = { ignorada: "você ignorou", expirada: "expirou sem resposta (48 h)", inconclusiva: "checagem inconclusiva: parou", arquivada: "arquivada" };
   const VEREDITO = { verdadeiro: "Verdadeiro", falso: "Falso", enganoso: "Enganoso", inconclusivo: "Inconclusivo" };
@@ -512,31 +536,41 @@ if (typeof T === "undefined") {
   async function carregar() {
     d = await T.ler("fila");
     const pz = d.prazos || {};
-    document.getElementById("prazos").innerHTML = `Prazos: checagem <b>${T.duracao(pz.checagem_min || 30)}</b> · roteiro <b>${T.duracao(pz.roteiro_min || 120)}</b> · edição <b>${T.duracao(pz.edicao_min || 360)}</b>${pz.medidos ? "" : " (metas, ainda não medidas)"}`;
+    document.getElementById("prazos").textContent = pz.medidos ? "Prazos medidos nas últimas peças." : "Prazos são metas, ainda não medidas.";
     if (d.plano) document.getElementById("trilha").textContent = `Plano ${d.plano}`;
     desenhar();
+  }
+
+  function prazoTxt(c) {
+    const pz = d.prazos || {};
+    if (/_min$/.test(c.prazo)) return `prazo <b>${T.duracao(pz[c.prazo] || ({ checagem_min: 30, roteiro_min: 120, edicao_min: 360 })[c.prazo])}</b>`;
+    return E(c.prazo);
   }
 
   function desenhar() {
     const alvo = document.getElementById("conteudo");
     const itens = d.itens || [];
-    const temPrevia = itens.some(i => i.status === "revisao");
     const cols = COLUNAS.map(c => ({ c, its: itens.filter(i => c.st.includes(i.status)).sort((a, b) => new Date(a.atualizado_em) - new Date(b.atualizado_em)) }));
     const fora = itens.filter(i => FORA[i.status]).sort((a, b) => new Date(b.atualizado_em) - new Date(a.atualizado_em));
-    if (!itens.length) {
-      alvo.innerHTML = `<div class="estado-tela"><h2>A fila está vazia</h2><p>Quando você escolher "Fazer vídeo" ou "Só checar" num alerta, a história entra aqui e anda sozinha pelas etapas.</p><p><a class="btn claro" href="painel.html">Ver o histórico</a></p></div>`;
-      return;
-    }
-    alvo.innerHTML = `<div class="quadro${temPrevia ? " com-previa" : ""}">
-      ${cols.map(({ c, its }) => `<section class="coluna${its.length ? "" : " vazia"}" aria-labelledby="col-${c.k}">
-        <h2 id="col-${c.k}">${c.t} <span>${its.length}</span></h2>
-        ${its.length ? its.map(i => i.status === "revisao" ? grande(i) : cartao(i)).join("") : `<div class="vazio">${c.vazio}</div>`}
+    const andando = cols.slice(0, 5).reduce((n, x) => n + x.its.length, 0);
+    const temPrevia = cols[4].its.length > 0;
+    alvo.innerHTML = `
+    ${andando ? "" : `<div class="faixa faixa-fila"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2B5C8E" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="7" rx="1"/></svg>
+      <div><b>Nenhuma peça andando agora.</b> Quando você escolher "Fazer vídeo" ou "Só checar" num alerta, a história entra em Aprovada e anda sozinha pelas etapas. <a href="painel.html">Ver o histórico</a></div></div>`}
+    <p class="dica-arrastar" aria-hidden="true">Arraste para o lado para ver as 6 etapas</p>
+    <div class="quadro${temPrevia ? " com-previa" : ""}" tabindex="0" role="region" aria-label="Quadro da fila de produção, 6 etapas">
+      ${cols.map(({ c, its }, n) => `<section class="coluna${its.length ? "" : " vazia"}" data-col="${c.k}" aria-labelledby="col-${c.k}">
+        <header class="col-cab">
+          <h2 id="col-${c.k}"><span class="passo">${n + 1}</span>${c.t}<span class="n" aria-label="${its.length} ${its.length === 1 ? "peça" : "peças"}">${its.length}</span></h2>
+          <p class="col-meta">${E(c.dono)} · ${prazoTxt(c)}</p>
+        </header>
+        ${its.length ? its.map(i => i.status === "revisao" ? grande(i) : cartao(i)).join("") : `<div class="col-vazia">nada aqui</div>`}
       </section>`).join("")}
     </div>
     <p class="rodape-fila">Ninguém publica nem envia nada sozinho: aprovar a pauta e aprovar o vídeo são sempre seus.</p>
     ${fora.length ? `<details class="fora"><summary><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>Fora da fila (${fora.length})</summary><ul>${fora.map(i => `<li><span class="cod">${E(i.codigo)}</span><span class="t">${E(i.titulo)}</span><span class="q">${E(FORA[i.status])}, ${T.dia(i.atualizado_em)}</span></li>`).join("")}</ul></details>` : ""}`;
     alvo.onclick = publicar;
-    if (location.hash) { const el = document.querySelector(location.hash); if (el) el.scrollIntoView({ block: "center" }); }
+    if (location.hash) { const el = document.querySelector(location.hash); if (el) el.scrollIntoView({ block: "center", inline: "start" }); }
   }
 
   function entrou(i) {

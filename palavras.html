@@ -37,7 +37,7 @@ button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--pena); outline-offset: 2px; border-radius: 4px; }
 .lado :focus-visible, .nav :focus-visible { outline-color: var(--papel); }
-.so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.so-leitor { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .mono { font-family: var(--mono); }
 .serif { font-family: var(--serif); }
 [hidden] { display: none !important; }
@@ -359,6 +359,14 @@ const T = (() => {
   const num = (n) => new Intl.NumberFormat("pt-BR").format(n);
   const dec = (n, c) => new Intl.NumberFormat("pt-BR", { minimumFractionDigits: c, maximumFractionDigits: c }).format(n);
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  // titulo em pt-BR (API v1.9): "titulo" ja traduzido + "titulo_original". Sem original = a IA nao classificou/traduziu.
+  // Devolve { traduzido, original }: original so quando difere do traduzido (ignora caixa e espacos).
+  function traducao(h) {
+    const orig = h.titulo_original;
+    if (orig == null || String(orig).trim() === "") return { traduzido: false, original: "" };
+    const igual = String(orig).trim().toLowerCase().replace(/\s+/g, " ") === String(h.titulo || "").trim().toLowerCase().replace(/\s+/g, " ");
+    return { traduzido: true, original: igual ? "" : String(orig).trim() };
+  }
   function urlSegura(u) { try { const x = new URL(u); return (x.protocol === "https:" || x.protocol === "http:") ? x.href : ""; } catch (e) { return ""; } }
 
   // ---------- o traco do sismografo, com dado de verdade ----------
@@ -478,7 +486,7 @@ const T = (() => {
   // "Irlanda (PT-BR, herda UE e Europa)" -> "Irlanda": o resto ja aparece nas pilulas
   function nomeCurto(n) { return String(n).replace(/\s*\(.*\)\s*$/, "") || n; }
 
-  return { ler, agir, iniciar, aviso, esc, urlSegura, hora, dia, diaLongo, diaISO, haQuanto, minutosDesde, duracao, num, dec, traco, sementeDe,
+  return { ler, agir, iniciar, aviso, esc, urlSegura, traducao, hora, dia, diaLongo, diaISO, haQuanto, minutosDesde, duracao, num, dec, traco, sementeDe,
     perfilLembrado, lembrarPerfil, abasPerfis, nomeCurto, get resumo() { return resumo; }, get fuso() { return fuso; } };
 })();
 
